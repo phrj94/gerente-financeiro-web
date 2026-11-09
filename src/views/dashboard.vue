@@ -3,6 +3,13 @@
   <div>
     <h1 class="text-h5 text-sm-h4 mb-4">📊 Dashboard</h1>
 
+    <!-- Botão para adicionar nova movimentação -->
+    <div class="d-flex justify-end mb-4">
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="abrirDialogNovo" rounded="lg">
+        Nova Movimentação
+      </v-btn>
+    </div>
+
     <!-- Filtros -->
     <FiltrosDashboard v-model:filtros="filtros" :categorias="categorias" :formasPagamento="formasPagamento"
       :responsaveis="responsaveis" :recebedores="recebedores" :bancos="bancos" :rotulos="rotulos"
@@ -12,8 +19,14 @@
     <CardsResumo :movimentacoes="movimentacoesFiltradas" />
 
     <!-- Tabela de movimentações -->
-    <TabelaMovimentacoes :movimentacoes="movimentacoesFiltradas" :loading="loading" @editar="abrirEdicao"
+    <TabelaMovimentacoes :movimentacoes="movimentacoesFiltradas" :loading="loading" @editar="abrirDialogEdicao"
       @deletar="confirmarDelecao" />
+
+    <!-- Dialog de criação/edição -->
+    <DialogMovimentacao v-model="dialogAberto" :movimentacao-para-editar="movimentacaoEditando" :categorias="categorias"
+      :formas-pagamento="formasPagamento" :responsaveis="responsaveis" :recebedores="recebedores" :bancos="bancos"
+      :rotulos="rotulos" @salvo="onSalvo" />
+
   </div>
 </template>
 
@@ -24,6 +37,7 @@ import { dataAtualISO, dataAtrasISO } from '@/utils/dateUtils'
 import FiltrosDashboard from '@/components/dashboard/FiltrosDashboard.vue'
 import CardsResumo from '@/components/dashboard/CardsResumo.vue'
 import TabelaMovimentacoes from '@/components/dashboard/TabelaMovimentacoes.vue'
+import DialogMovimentacao from '@/components/dashboard/DialogMovimentacao.vue'
 
 // Filtros
 const filtros = ref({
@@ -162,10 +176,23 @@ const resetarFiltros = () => {
   }
 }
 
-// Placeholder das ações (serão implementadas depois)
-const abrirEdicao = (mov) => {
-  console.log('Editar movimentação:', mov)
-  // Em breve: abrir dialog de edição
+// ---------- ESTADO DO DIALOG ----------
+const dialogAberto = ref(false)
+const movimentacaoEditando = ref(null)
+
+// ---------- HANDLERS ----------
+const abrirDialogNovo = () => {
+  movimentacaoEditando.value = null
+  dialogAberto.value = true
+}
+
+const abrirDialogEdicao = (mov) => {
+  movimentacaoEditando.value = mov
+  dialogAberto.value = true
+}
+
+const onSalvo = async () => {
+  await buscarMovimentacoes()
 }
 
 const confirmarDelecao = async (mov) => {
