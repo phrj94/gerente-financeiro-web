@@ -8,54 +8,22 @@
       :responsaveis="responsaveis" :recebedores="recebedores" :bancos="bancos" :rotulos="rotulos"
       @reset="resetarFiltros" />
 
-    <!-- Cards de resumo (em breve) -->
-    <v-row class="mb-4">
-      <v-col cols="12" sm="4">
-        <v-card color="green-lighten-5" variant="tonal">
-          <v-card-text class="text-center">
-            <div class="text-subtitle1 font-weight-medium text-green-darken-2">💰 Entradas</div>
-            <div class="text-h5 text-green-darken-2">R$ 0,00</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="4">
-        <v-card color="red-lighten-5" variant="tonal">
-          <v-card-text class="text-center">
-            <div class="text-subtitle1 font-weight-medium text-red-darken-2">💸 Saídas</div>
-            <div class="text-h5 text-red-darken-2">R$ 0,00</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="4">
-        <v-card color="grey-lighten-3" variant="tonal">
-          <v-card-text class="text-center">
-            <div class="text-subtitle1 font-weight-medium">⚖️ Saldo</div>
-            <div class="text-h5">R$ 0,00</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+    <!-- Cards de resumo (reativos aos filtros) -->
+    <CardsResumo :movimentacoes="movimentacoesFiltradas" />
 
-    <!-- Tabela de movimentações (em breve) -->
-    <v-card>
-      <v-card-title>📋 Movimentações</v-card-title>
-      <v-data-table :headers="headers" :items="movimentacoes" :loading="loading" items-per-page="-1" hide-default-footer
-        class="elevation-0">
-        <template v-slot:no-data>
-          <v-alert type="info" class="ma-4">
-            Nenhuma movimentação encontrada.
-          </v-alert>
-        </template>
-      </v-data-table>
-    </v-card>
+    <!-- Tabela de movimentações -->
+    <TabelaMovimentacoes :movimentacoes="movimentacoesFiltradas" :loading="loading" @editar="abrirEdicao"
+      @deletar="confirmarDelecao" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import api from '@/services/api'
 import { dataAtualISO, dataAtrasISO } from '@/utils/dateUtils'
 import FiltrosDashboard from '@/components/dashboard/FiltrosDashboard.vue'
+import CardsResumo from '@/components/dashboard/CardsResumo.vue'
+import TabelaMovimentacoes from '@/components/dashboard/TabelaMovimentacoes.vue'
 
 // Filtros
 const filtros = ref({
@@ -97,6 +65,43 @@ const headers = [
   { title: 'Valor', key: 'valor', align: 'end' },
 ]
 
+// Movimentações filtradas (aplicando filtros avançados no frontend)
+const movimentacoesFiltradas = computed(() => {
+  let items = movimentacoes.value
+  const f = filtros.value
+
+  if (f.descricao) {
+    const termo = f.descricao.toLowerCase()
+    items = items.filter(m => m.descricao && m.descricao.toLowerCase().includes(termo))
+  }
+  if (f.categoria) {
+    items = items.filter(m => m.categoria_nome === f.categoria)
+  }
+  if (f.formaPagamento) {
+    items = items.filter(m => m.forma_pagamento_nome === f.formaPagamento)
+  }
+  if (f.responsavel) {
+    items = items.filter(m => m.responsavel_nome === f.responsavel)
+  }
+  if (f.recebedor) {
+    items = items.filter(m => m.recebedor_nome === f.recebedor)
+  }
+  if (f.bancoOrigem) {
+    items = items.filter(m => m.banco_origem_nome === f.bancoOrigem)
+  }
+  if (f.bancoDestino) {
+    items = items.filter(m => m.banco_destino_nome === f.bancoDestino)
+  }
+  if (f.rotulo) {
+    items = items.filter(m => m.rotulo_nome === f.rotulo)
+  }
+  if (f.tipo) {
+    items = items.filter(m => m.tipo_operacao === f.tipo)
+  }
+
+  return items
+})
+
 // Carregar dados de apoio
 const carregarDadosApoio = async () => {
   try {
@@ -114,11 +119,11 @@ const carregarDadosApoio = async () => {
     bancos.value = banc.data.data || banc.data
     rotulos.value = rot.data.data || rot.data
   } catch (error) {
-    console.error('Erro ao carregar dados de apoio:', error)
+    console.error('Erro ao carregar dados de apoio: ', error)
   }
 }
 
-// Buscar movimentações
+// Buscar movimentações (com filtros de data enviados para a API)
 const buscarMovimentacoes = async () => {
   loading.value = true
   try {
@@ -138,7 +143,7 @@ const buscarMovimentacoes = async () => {
   }
 }
 
-// Resetar filtros
+// Resetar filtros para o padrão (últimos 30 dias)
 const resetarFiltros = () => {
   filtros.value = {
     dataInicio: dataAtrasISO(30),
@@ -157,7 +162,25 @@ const resetarFiltros = () => {
   }
 }
 
-// Reação a mudanças nos filtros (apenas data)
+// Placeholder das ações (serão implementadas depois)
+const abrirEdicao = (mov) => {
+  console.log('Editar movimentação:', mov)
+  // Em breve: abrir dialog de edição
+}
+
+const confirmarDelecao = async (mov) => {
+  if (confirm(`Excluir movimentação de ${mov.descricao || 'sem descrição'}?`)) {
+    try {
+      await api.delete(`/movimentacoes/${mov.id}`)
+      await buscarMovimentacoes()
+    } catch (error) {
+      console.error('Erro ao deletar movimentação:', error)
+      alert('Erro ao excluir movimentação. Tente novamente.')
+    }
+  }
+}
+
+// Reação a mudanças nas datas (único filtro que refaz a chamada à API)
 watch(
   () => [filtros.value.dataInicio, filtros.value.dataFim, filtros.value.dataRegistroInicio, filtros.value.dataRegistroFim],
   () => {
