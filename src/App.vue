@@ -20,6 +20,7 @@
         <v-btn variant="text" to="/rotulos" class="text-none">Rótulos</v-btn>
         <v-btn variant="text" to="/perfis-movimentacao" class="text-none">Perfis</v-btn>
         <v-btn variant="text" to="/perfil" class="text-none">Perfil</v-btn>
+        <v-btn variant="text" to="/importar-extrato" class="text-none">Importar</v-btn>
       </div>
 
       <v-spacer></v-spacer>

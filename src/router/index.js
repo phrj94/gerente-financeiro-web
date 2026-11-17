@@ -11,6 +11,7 @@ import Bancos from '@/views/Bancos.vue'
 import Responsaveis from '@/views/Responsaveis.vue'
 import Rotulos from '@/views/Rotulos.vue'
 import Perfil from '@/views/Perfil.vue'
+import ImportarExtrato from '@/views/ImportarExtrato.vue'
 // import PerfisMovimentacao from '@/views/PerfisMovimentacao.vue'
 
 const routes = [
@@ -25,6 +26,7 @@ const routes = [
   { path: '/responsaveis', name: 'Responsaveis', component: Responsaveis, meta: { requiresAuth: true } },
   { path: '/rotulos', name: 'Rotulos', component: Rotulos, meta: { requiresAuth: true } },
   { path: '/perfil', name: 'Perfil', component: Perfil, meta: { requiresAuth: true } },
+  { path: '/importar-extrato', name: 'ImportarExtrato', component: ImportarExtrato, meta: { requiresAuth: true } },
   // { path: '/perfis-movimentacao', name: 'PerfisMovimentacao', component: PerfisMovimentacao, meta: { requiresAuth: true } },
   
   // Redirecionamento padrão

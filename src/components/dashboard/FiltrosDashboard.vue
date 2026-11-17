@@ -7,36 +7,20 @@
       <span class="text-h6">Filtros</span>
 
       <!-- Badge com quantidade de filtros ativos -->
-      <v-chip
-        v-if="quantidadeFiltrosAtivos > 0"
-        color="primary"
-        size="small"
-        class="ml-2"
-      >
+      <v-chip v-if="quantidadeFiltrosAtivos > 0" color="primary" size="small" class="ml-2">
         {{ quantidadeFiltrosAtivos }}
       </v-chip>
 
       <v-spacer />
 
       <!-- Botão para expandir/recolher -->
-      <v-btn
-        icon
-        variant="text"
-        color="primary"
-        :title="expandido ? 'Recolher filtros' : 'Expandir filtros'"
-        @click="expandido = !expandido"
-      >
+      <v-btn icon variant="text" color="primary" :title="expandido ? 'Recolher filtros' : 'Expandir filtros'"
+        @click="expandido = !expandido">
         <v-icon>{{ expandido ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
       </v-btn>
 
       <!-- Botão de reset (mantido) -->
-      <v-btn
-        icon
-        variant="text"
-        color="primary"
-        title="Restaurar filtros padrão (últimos 30 dias)"
-        @click="resetar"
-      >
+      <v-btn icon variant="text" color="primary" title="Restaurar filtros padrão (últimos 30 dias)" @click="resetar">
         <v-icon>mdi-restore</v-icon>
       </v-btn>
     </v-card-title>
@@ -54,169 +38,75 @@
           <!-- Filtros de data -->
           <v-row>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model="filtros.dataInicio"
-                label="De (mov.)"
-                type="date"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-text-field v-model="filtros.dataInicio" label="De (mov.)" type="date" variant="outlined"
+                density="compact" hide-details clearable />
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model="filtros.dataFim"
-                label="Até (mov.)"
-                type="date"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-text-field v-model="filtros.dataFim" label="Até (mov.)" type="date" variant="outlined"
+                density="compact" hide-details clearable />
             </v-col>
+            <!-- <v-col cols="12" sm="6" md="4">
+              <v-text-field v-model="filtros.dataRegistroInicio" label="De (data registro)" type="date"
+                variant="outlined" density="compact" hide-details clearable />
+            </v-col> -->
+            <!-- <v-col cols="12" sm="6" md="4">
+              <v-text-field v-model="filtros.dataRegistroFim" label="Até (data registro)" type="date" variant="outlined"
+                density="compact" hide-details clearable />
+            </v-col> -->
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model="filtros.dataRegistroInicio"
-                label="De (data registro)"
-                type="date"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
-            </v-col>
-            <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model="filtros.dataRegistroFim"
-                label="Até (data registro)"
-                type="date"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-select v-model="filtros.id_fatura" label="Filtrar por Fatura de Cartão" :items="faturas"
+                item-title="label" item-value="id" variant="outlined" density="compact" hide-details clearable
+                @update:model-value="limparDatasSeFatura" />
             </v-col>
           </v-row>
+
+          <!-- <v-row>
+            <v-col cols="12" sm="6" md="4">
+              <v-select v-model="filtros.id_fatura" label="Filtrar por Fatura de Cartão" :items="faturas"
+                item-title="label" item-value="id" variant="outlined" density="compact" hide-details clearable
+                @update:model-value="limparDatasSeFatura" />
+            </v-col>
+          </v-row> -->
 
           <v-divider class="my-4" />
 
           <!-- Filtros avançados (sem agrupamento) -->
           <v-row>
             <v-col cols="12" sm="6" md="4" lg="3">
-              <v-text-field
-                v-model="filtros.descricao"
-                label="Descrição (contém)"
-                variant="outlined"
-                density="compact"
-                hide-details
-                placeholder="Filtrar por descrição"
-                clearable
-              />
+              <v-text-field v-model="filtros.descricao" label="Descrição (contém)" variant="outlined" density="compact"
+                hide-details placeholder="Filtrar por descrição" clearable />
             </v-col>
             <v-col cols="12" sm="6" md="4" lg="3">
-              <v-select
-                v-model="filtros.categoria"
-                label="Categoria (igual)"
-                :items="categorias"
-                item-title="nome"
-                item-value="nome"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-select v-model="filtros.categoria" label="Categoria (igual)" :items="categorias" item-title="nome"
+                item-value="nome" variant="outlined" density="compact" hide-details clearable />
             </v-col>
             <v-col cols="12" sm="6" md="4" lg="3">
-              <v-select
-                v-model="filtros.formaPagamento"
-                label="Forma de pagamento (igual)"
-                :items="formasPagamento"
-                item-title="nome"
-                item-value="nome"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-select v-model="filtros.formaPagamento" label="Forma de pagamento (igual)" :items="formasPagamento"
+                item-title="nome" item-value="nome" variant="outlined" density="compact" hide-details clearable />
             </v-col>
             <v-col cols="12" sm="6" md="4" lg="3">
-              <v-select
-                v-model="filtros.responsavel"
-                label="Responsável (igual)"
-                :items="responsaveis"
-                item-title="nome"
-                item-value="nome"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-select v-model="filtros.responsavel" label="Responsável (igual)" :items="responsaveis"
+                item-title="nome" item-value="nome" variant="outlined" density="compact" hide-details clearable />
             </v-col>
             <v-col cols="12" sm="6" md="4" lg="3">
-              <v-select
-                v-model="filtros.recebedor"
-                label="Recebedor (igual)"
-                :items="recebedores"
-                item-title="nome"
-                item-value="nome"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-select v-model="filtros.recebedor" label="Recebedor (igual)" :items="recebedores" item-title="nome"
+                item-value="nome" variant="outlined" density="compact" hide-details clearable />
             </v-col>
             <v-col cols="12" sm="6" md="4" lg="3">
-              <v-select
-                v-model="filtros.bancoOrigem"
-                label="Banco origem (igual)"
-                :items="bancos"
-                item-title="nome"
-                item-value="nome"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-select v-model="filtros.bancoOrigem" label="Banco origem (igual)" :items="bancos" item-title="nome"
+                item-value="nome" variant="outlined" density="compact" hide-details clearable />
             </v-col>
             <v-col cols="12" sm="6" md="4" lg="3">
-              <v-select
-                v-model="filtros.bancoDestino"
-                label="Banco destino (igual)"
-                :items="bancos"
-                item-title="nome"
-                item-value="nome"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-select v-model="filtros.bancoDestino" label="Banco destino (igual)" :items="bancos" item-title="nome"
+                item-value="nome" variant="outlined" density="compact" hide-details clearable />
             </v-col>
             <v-col cols="12" sm="6" md="4" lg="3">
-              <v-select
-                v-model="filtros.rotulo"
-                label="Rótulo (igual)"
-                :items="rotulos"
-                item-title="nome"
-                item-value="nome"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-select v-model="filtros.rotulo" label="Rótulo (igual)" :items="rotulos" item-title="nome"
+                item-value="nome" variant="outlined" density="compact" hide-details clearable />
             </v-col>
             <v-col cols="12" sm="6" md="4" lg="3">
-              <v-select
-                v-model="filtros.tipo"
-                label="Tipo (igual)"
-                :items="tiposMovimentacao"
-                item-title="nome"
-                item-value="tipo"
-                variant="outlined"
-                density="compact"
-                hide-details
-                clearable
-              />
+              <v-select v-model="filtros.tipo" label="Tipo (igual)" :items="tiposMovimentacao" item-title="nome"
+                item-value="tipo" variant="outlined" density="compact" hide-details clearable />
             </v-col>
           </v-row>
         </v-card-text>
@@ -240,6 +130,7 @@ const props = defineProps({
   recebedores: { type: Array, default: () => [] },
   bancos: { type: Array, default: () => [] },
   rotulos: { type: Array, default: () => [] },
+  faturas: { type: Array, default: () => [] }
 })
 
 const emit = defineEmits(['update:filtros', 'reset'])
@@ -291,6 +182,13 @@ const filtrosAtivos = computed(() => {
 
   return ativos
 })
+
+const limparDatasSeFatura = (val) => {
+  if (val) {
+    filtros.value.dataInicio = ''
+    filtros.value.dataFim = ''
+  }
+}
 
 // Quantidade de filtros ativos
 const quantidadeFiltrosAtivos = computed(() => filtrosAtivos.value.length)

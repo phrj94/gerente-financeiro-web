@@ -12,11 +12,14 @@
 
     <!-- Filtros -->
     <FiltrosDashboard v-model:filtros="filtros" :categorias="categorias" :formasPagamento="formasPagamento"
-      :responsaveis="responsaveis" :recebedores="recebedores" :bancos="bancos" :rotulos="rotulos"
+      :responsaveis="responsaveis" :recebedores="recebedores" :bancos="bancos" :rotulos="rotulos" :faturas="faturas"
       @reset="resetarFiltros" />
 
-    <!-- Cards de resumo (reativos aos filtros) -->
-    <CardsResumo :movimentacoes="movimentacoesFiltradas" />
+    <!-- Resumo Global -->
+    <ResumoGlobal :movimentacoes="movimentacoesFiltradas" />
+
+    <!-- Resumo por Banco -->
+    <ResumoBancos :movimentacoes="movimentacoesFiltradas" :bancos="bancos" />
 
     <!-- Tabela de movimentações -->
     <TabelaMovimentacoes :movimentacoes="movimentacoesFiltradas" :loading="loading" @editar="abrirDialogEdicao"
@@ -38,6 +41,8 @@ import FiltrosDashboard from '@/components/dashboard/FiltrosDashboard.vue'
 import CardsResumo from '@/components/dashboard/CardsResumo.vue'
 import TabelaMovimentacoes from '@/components/dashboard/TabelaMovimentacoes.vue'
 import DialogMovimentacao from '@/components/dashboard/DialogMovimentacao.vue'
+import ResumoGlobal from '@/components/dashboard/ResumoGlobal.vue'
+import ResumoBancos from '@/components/dashboard/ResumoBancos.vue'
 
 // Filtros
 const filtros = ref({
@@ -45,6 +50,7 @@ const filtros = ref({
   dataFim: dataAtualISO(),
   dataRegistroInicio: '',
   dataRegistroFim: '',
+  id_fatura: null,
   descricao: '',
   categoria: null,
   formaPagamento: null,
@@ -63,6 +69,7 @@ const responsaveis = ref([])
 const recebedores = ref([])
 const bancos = ref([])
 const rotulos = ref([])
+const faturas = ref([])
 
 // Movimentações
 const movimentacoes = ref([])
@@ -144,8 +151,9 @@ const buscarMovimentacoes = async () => {
     const params = new URLSearchParams()
     if (filtros.value.dataInicio) params.append('dataInicio', filtros.value.dataInicio)
     if (filtros.value.dataFim) params.append('dataFim', filtros.value.dataFim)
-    if (filtros.value.dataRegistroInicio) params.append('dataRegistroInicio', filtros.value.dataRegistroInicio)
-    if (filtros.value.dataRegistroFim) params.append('dataRegistroFim', filtros.value.dataRegistroFim)
+    // if (filtros.value.dataRegistroInicio) params.append('dataRegistroInicio', filtros.value.dataRegistroInicio)
+    // if (filtros.value.dataRegistroFim) params.append('dataRegistroFim', filtros.value.dataRegistroFim)
+    if (filtros.value.id_fatura) params.append('id_fatura', filtros.value.id_fatura)
 
     const url = `/movimentacoes${params.toString() ? `?${params.toString()}` : ''}`
     const response = await api.get(url)
@@ -173,6 +181,7 @@ const resetarFiltros = () => {
     bancoDestino: null,
     rotulo: null,
     tipo: null,
+    id_fatura: null,
   }
 }
 
@@ -207,6 +216,21 @@ const confirmarDelecao = async (mov) => {
   }
 }
 
+const carregarFaturas = async () => {
+  try {
+    const res = await api.get('/faturas')
+    const lista = res.data.data || res.data
+
+    // Formata o título do select para ficar amigável
+    faturas.value = lista.map(f => ({
+      ...f,
+      label: `${f.banco_nome} - ${f.mes_referencia.split('-').reverse().join('/')} (R$ ${parseFloat(f.valor_total).toFixed(2)})`
+    }))
+  } catch (error) {
+    console.error('Erro ao carregar faturas:', error)
+  }
+}
+
 // Reação a mudanças nas datas (único filtro que refaz a chamada à API)
 watch(
   () => [filtros.value.dataInicio, filtros.value.dataFim, filtros.value.dataRegistroInicio, filtros.value.dataRegistroFim],
@@ -215,8 +239,9 @@ watch(
   }
 )
 
-onMounted(() => {
-  carregarDadosApoio()
+onMounted(async () => {
+  await carregarDadosApoio()
+  await carregarFaturas()
   buscarMovimentacoes()
 })
 </script>
